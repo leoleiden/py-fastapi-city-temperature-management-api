@@ -27,21 +27,22 @@ async def get_cities(
 
 
 async def update_city(
-        db: AsyncSession,
-        city_id: int,
-        city_update: schemas.CityCreate
+    db: AsyncSession,
+    city_id: int,
+    city_update: schemas.CityCreate
 ) -> Optional[models.City]:
-    existing_city = await get_city(db, city_id)
-    if not existing_city:
-        return None
-
-    await db.execute(
+    result = await db.execute(
         update(models.City)
         .where(models.City.id == city_id)
         .values(**city_update.dict())
+        .returning(models.City)
     )
+    updated_city = result.scalar_one_or_none()
+    if not updated_city:
+        return None
     await db.commit()
-    return await get_city(db, city_id)
+    await db.refresh(updated_city)
+    return updated_city
 
 
 async def delete_city(db: AsyncSession, city_id: int) -> bool:
@@ -73,7 +74,7 @@ async def get_temperatures(
         limit: int = 100
 ) -> List[models.Temperature]:
     query = select(models.Temperature)
-    if city_id:
+    if city_id is not None:
         query = query.where(models.Temperature.city_id == city_id)
 
     query = query.offset(skip).limit(limit)
