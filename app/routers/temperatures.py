@@ -1,5 +1,6 @@
 from fastapi import APIRouter, Depends, HTTPException
 from sqlalchemy.ext.asyncio import AsyncSession
+from typing import List
 from ..services import weather
 from .. import database, models, schemas, crud
 
@@ -14,6 +15,9 @@ async def update_temperatures(db: AsyncSession = Depends(database.get_db)):
             await crud.create_temperature(db, schemas.TemperatureCreate(temperature=temp), city.id)
     return {"status": "success"}
 
-@router.get("/", response_model=list[schemas.Temperature])
-async def read_temperatures(city_id: int | None = None, db: AsyncSession = Depends(database.get_db)):
+@router.get("/", response_model=List[schemas.Temperature])
+async def read_temperatures(
+    city_id: Optional[int] = None,
+    db: AsyncSession = Depends(get_db)
+):
     return await crud.get_temperatures(db, city_id)
