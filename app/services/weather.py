@@ -12,6 +12,6 @@ async def get_current_temperature(city_name: str) -> float | None:
     async with httpx.AsyncClient() as client:
         response = await client.get(url)
         if response.status_code == 200:
-            data = response.json()
+            data = await response.json()
             return data["main"]["temp"]
     return None
