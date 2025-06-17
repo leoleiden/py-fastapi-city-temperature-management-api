@@ -41,8 +41,7 @@ async def update_city(
     if not updated_city:
         return None
     await db.commit()
-    await db.refresh(updated_city)
-    return updated_city
+    return await get_city(db, city_id)
 
 
 async def delete_city(db: AsyncSession, city_id: int) -> bool:
